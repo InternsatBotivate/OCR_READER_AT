@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Card Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f3ff; /* Light Purplish Background */
+        }
+        .btn-primary {
+            background-color: #8b5cf6;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background-color: #7c3aed;
+        }
+        .btn-primary:disabled {
+            background-color: #c4b5fd;
+            cursor: not-allowed;
+        }
+        .loader { 
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #8b5cf6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .hidden { display: none; }
+        .editable-input {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: left;
+            font-weight: 500;
+        }
+        .editable-input:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 1px #8b5cf6;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-lg">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Business Card Reader</h1>
+        </div>
+
+        <form id="cardForm" class="space-y-6">
+            <div>
+                <label class="text-sm font-medium text-gray-700">Card Front (Required)</label>
+                <div class="flex items-center space-x-4 mt-2">
+                    <label for="photo1" class="flex-grow h-36 relative border-2 border-dashed rounded-lg flex items-center justify-center text-center cursor-pointer hover:border-purple-500 transition-colors">
+                        <div id="placeholder-photo1" class="text-gray-500">
+                            <p class="font-medium">Tap to Upload</p>
+                        </div>
+                        <img id="preview-photo1" class="hidden absolute inset-0 w-full h-full object-cover rounded-lg" alt="Front preview">
+                    </label>
+                    <label for="photo1-capture" class="flex-shrink-0 w-20 h-36 border-2 border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors">
+                        <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </label>
+                    <input type="file" id="photo1" class="hidden" accept="image/*">
+                    <input type="file" id="photo1-capture" class="hidden" accept="image/*" capture="environment">
+                </div>
+            </div>
+
+            <div>
+                 <label class="text-sm font-medium text-gray-700">Card Back (Optional)</label>
+                <div class="flex items-center space-x-4 mt-2">
+                     <label for="photo2" class="flex-grow h-36 relative border-2 border-dashed rounded-lg flex items-center justify-center text-center cursor-pointer hover:border-purple-500 transition-colors">
+                        <div id="placeholder-photo2" class="text-gray-500">
+                            <p class="font-medium">Tap to Upload</p>
+                        </div>
+                        <img id="preview-photo2" class="hidden absolute inset-0 w-full h-full object-cover rounded-lg" alt="Back preview">
+                    </label>
+                     <label for="photo2-capture" class="flex-shrink-0 w-20 h-36 border-2 border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors">
+                        <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </label>
+                    <input type="file" id="photo2" class="hidden" accept="image/*">
+                    <input type="file" id="photo2-capture" class="hidden" accept="image/*" capture="environment">
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white btn-primary" disabled>
+                 <span id="submitBtn-text">Scan & Extract</span>
+                 <div id="submitBtn-loader" class="hidden loader"></div>
+            </button>
+        </form>
+    </div>
+
+    <footer class="text-center text-sm text-gray-500 py-4 mt-6">
+        Powered by <a href="https://www.botivate.in/" target="_blank" rel="noopener noreferrer" class="font-medium text-purple-600 hover:text-purple-500">Botivate</a>
+    </footer>
+
+    <div id="confirmationModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60">
+        <div id="modal-content-area" class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 space-y-4">
+            <h2 id="modal-title" class="text-xl font-bold text-gray-800"></h2>
+            <div id="modal-loader" class="hidden flex justify-center py-8"><div class="loader"></div></div>
+            <div id="confirmation-details" class="hidden space-y-3 text-sm"></div>
+            <div id="final-details" class="hidden text-center"></div>
+            <p id="modal-error" class="hidden p-3 bg-red-100 text-red-700 rounded-lg"></p>
+            <div id="modal-buttons" class="flex justify-end space-x-4 mt-6">
+                <button id="cancel-btn" class="px-4 py-2 rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300">Cancel</button>
+                <button id="confirm-save-btn" class="px-4 py-2 rounded-md text-white btn-primary flex items-center">
+                    <span id="confirm-save-btn-text">Confirm & Save</span>
+                    <div id="confirm-save-loader" class="hidden loader w-5 h-5 ml-2 border-2 border-white"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let submissionData = {};
+
+            const cardForm = document.getElementById('cardForm');
+            // ... (other variable declarations)
+            const photo1Input = document.getElementById('photo1');
+            const photo1CaptureInput = document.getElementById('photo1-capture');
+            const photo2Input = document.getElementById('photo2');
+            const photo2CaptureInput = document.getElementById('photo2-capture');
+            const preview1 = document.getElementById('preview-photo1');
+            const preview2 = document.getElementById('preview-photo2');
+            const placeholder1 = document.getElementById('placeholder-photo1');
+            const placeholder2 = document.getElementById('placeholder-photo2');
+            const submitBtn = document.getElementById('submitBtn');
+            const submitBtnText = document.getElementById('submitBtn-text');
+            const submitBtnLoader = document.getElementById('submitBtn-loader');
+            const confirmationModal = document.getElementById('confirmationModal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalLoader = document.getElementById('modal-loader');
+            const confirmationDetails = document.getElementById('confirmation-details');
+            const finalDetails = document.getElementById('final-details');
+            const modalError = document.getElementById('modal-error');
+            const modalButtons = document.getElementById('modal-buttons');
+            const confirmSaveBtn = document.getElementById('confirm-save-btn');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const confirmSaveBtnText = document.getElementById('confirm-save-btn-text');
+            const confirmSaveLoader = document.getElementById('confirm-save-loader');
+
+
+            const handleFileSelection = (event, preview, placeholder) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const mainFile = photo1Input.files[0] || photo1CaptureInput.files[0];
+                submitBtn.disabled = !mainFile;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            };
+            
+            photo1Input.addEventListener('change', (e) => handleFileSelection(e, preview1, placeholder1));
+            photo1CaptureInput.addEventListener('change', (e) => handleFileSelection(e, preview1, placeholder1));
+            photo2Input.addEventListener('change', (e) => handleFileSelection(e, preview2, placeholder2));
+            photo2CaptureInput.addEventListener('change', (e) => handleFileSelection(e, preview2, placeholder2));
+            
+            cardForm.addEventListener('submit', handleFormSubmit);
+            confirmSaveBtn.addEventListener('click', executeSave);
+            cancelBtn.addEventListener('click', () => {
+                confirmationModal.classList.add('hidden');
+                resetForm();
+            });
+
+            async function handleFormSubmit(event) {
+                event.preventDefault(); 
+                const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzo-iRoehu5-6EAR5_2R1dQYrG78S5y4lF2rn4bw60Q-xANX6GxHm3VX5yZ-_TgGNHj/exec';
+
+                const file1 = photo1Input.files[0] || photo1CaptureInput.files[0];
+                if (!file1) return alert('Please provide the front of the card.');
+                
+                showModal('Extracting Details...', { loading: true });
+
+                try {
+                    const photo1Base64 = await toBase64(file1);
+                    const file2 = photo2Input.files[0] || photo2CaptureInput.files[0];
+                    const photo2Base64 = file2 ? await toBase64(file2) : '';
+                    
+                    submissionData = { photo1Base64, photo2Base64 };
+
+                    const response = await fetch(appsScriptUrl, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'extract', photo1Base64 })
+                    });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        submissionData.originalData = result.data;
+                        showModal('Confirm Extracted Details', { editableData: result.data });
+                    } else {
+                        throw new Error(result.message);
+                    }
+                } catch (error) {
+                    showModal('An Error Occurred ❌', { error: error.message });
+                }
+            }
+            
+            async function executeSave() {
+                const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzo-iRoehu5-6EAR5_2R1dQYrG78S5y4lF2rn4bw60Q-xANX6GxHm3VX5yZ-_TgGNHj/exec';
+                
+                const editedData = {
+                    company: document.getElementById('edit-company').value,
+                    name: document.getElementById('edit-name').value,
+                    phone: document.getElementById('edit-phone').value,
+                    email: document.getElementById('edit-email').value,
+                    address: document.getElementById('edit-address').value,
+                    title: '' // **FIX**: Sending an empty title as requested
+                };
+                submissionData.extractedData = editedData;
+                
+                setSaveLoading(true);
+
+                try {
+                     const response = await fetch(appsScriptUrl, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'save', ...submissionData })
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showModal('Submission Successful!', { success: result.data.message });
+                    } else {
+                        throw new Error(result.message);
+                    }
+                } catch(error) {
+                    showModal('Save Failed ❌', { error: error.message });
+                } finally {
+                    setSaveLoading(false);
+                }
+            }
+
+            function showModal(title, state) {
+                modalTitle.textContent = title;
+                // Reset all states
+                modalLoader.classList.add('hidden');
+                confirmationDetails.classList.add('hidden');
+                finalDetails.classList.add('hidden');
+                modalError.classList.add('hidden');
+                modalButtons.classList.add('hidden');
+                confirmSaveBtn.classList.remove('hidden'); // **FIX**: Make sure button is visible by default
+
+                if (state.loading) {
+                    modalLoader.classList.remove('hidden');
+                } else if (state.editableData) {
+                    // **FIX**: The 'Title' field is removed from here
+                    confirmationDetails.innerHTML = `
+                        <div class="space-y-3">
+                            <div><label class="font-medium text-gray-600">Company</label><input type="text" id="edit-company" class="editable-input" value="${state.editableData.company || ''}"></div>
+                            <div><label class="font-medium text-gray-600">Name</label><input type="text" id="edit-name" class="editable-input" value="${state.editableData.name || ''}"></div>
+                            <div><label class="font-medium text-gray-600">Phone</label><input type="text" id="edit-phone" class="editable-input" value="${state.editableData.phone || ''}"></div>
+                            <div><label class="font-medium text-gray-600">Email</label><input type="email" id="edit-email" class="editable-input" value="${state.editableData.email || ''}"></div>
+                            <div><label class="font-medium text-gray-600">Address</label><input type="text" id="edit-address" class="editable-input" value="${state.editableData.address || ''}"></div>
+                        </div>
+                    `;
+                    confirmationDetails.classList.remove('hidden');
+                    modalButtons.classList.remove('hidden'); // **FIX**: Show the buttons
+                    cancelBtn.textContent = "Cancel";
+                } else if (state.success) {
+                    finalDetails.innerHTML = `<p class="text-green-600 font-bold">${state.success}</p>`;
+                    finalDetails.classList.remove('hidden');
+                    modalButtons.classList.remove('hidden');
+                    confirmSaveBtn.classList.add('hidden');
+                    cancelBtn.textContent = "Done";
+                } else if (state.error) {
+                    modalError.textContent = state.error;
+                    modalError.classList.remove('hidden');
+                    modalButtons.classList.remove('hidden');
+                    confirmSaveBtn.classList.add('hidden');
+                    cancelBtn.textContent = "Close";
+                }
+                
+                confirmationModal.classList.remove('hidden');
+            }
+
+            function setSaveLoading(isLoading) {
+                confirmSaveBtn.disabled = isLoading;
+                confirmSaveBtnText.classList.toggle('hidden', isLoading);
+                confirmSaveLoader.classList.toggle('hidden', !isLoading);
+            }
+
+            function toBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = error => reject(error);
+                });
+            }
+
+            function resetForm() {
+                cardForm.reset();
+                submitBtn.disabled = true;
+                preview1.src = '';
+                preview2.src = '';
+                preview1.classList.add('hidden');
+                placeholder1.classList.remove('hidden');
+                preview2.classList.add('hidden');
+                placeholder2.classList.remove('hidden');
+                submissionData = {};
+            }
+        });
+    </script>
+</body>
+</html>
