@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business Card Reader</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f5f3ff; }
+    .btn-primary { background-color: #8b5cf6; transition: background-color 0.2s ease-in-out; }
+    .btn-primary:hover:not(:disabled) { background-color: #7c3aed; }
+    .btn-primary:disabled { background-color: #c4b5fd; cursor: not-allowed; }
+    .loader { border: 4px solid #f3f3f3; border-top: 4px solid #8b5cf6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .hidden { display: none; }
+    #notification {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    #notification.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #notification.success { background-color: #22c55e; }
+    #notification.error { background-color: #ef4444; }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+  <div id="notification"></div>
+
+  <div class="w-full max-w-md mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-lg">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-800">Business Card Reader</h1>
+    </div>
+
+    <form id="cardForm" class="space-y-6">
+      <div><label class="text-sm font-medium text-gray-700">Card Front (Required)</label><div class="flex items-center space-x-4 mt-2"><label for="photo1" class="flex-grow h-36 relative border-2 border-dashed rounded-lg flex items-center justify-center text-center cursor-pointer hover:border-purple-500 transition-colors"><div id="placeholder-photo1" class="text-gray-500"><p class="font-medium">Tap to Upload</p></div><img id="preview-photo1" class="hidden absolute inset-0 w-full h-full object-cover rounded-lg" alt="Front preview"></label><label for="photo1-capture" class="flex-shrink-0 w-20 h-36 border-2 border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors"><svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></label><input type="file" id="photo1" class="hidden" accept="image/*"><input type="file" id="photo1-capture" class="hidden" accept="image/*" capture="environment"></div></div>
+      <div><label class="text-sm font-medium text-gray-700">Card Back (Optional)</label><div class="flex items-center space-x-4 mt-2"><label for="photo2" class="flex-grow h-36 relative border-2 border-dashed rounded-lg flex items-center justify-center text-center cursor-pointer hover:border-purple-500 transition-colors"><div id="placeholder-photo2" class="text-gray-500"><p class="font-medium">Tap to Upload</p></div><img id="preview-photo2" class="hidden absolute inset-0 w-full h-full object-cover rounded-lg" alt="Back preview"></label><label for="photo2-capture" class="flex-shrink-0 w-20 h-36 border-2 border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors"><svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></label><input type="file" id="photo2" class="hidden" accept="image/*"><input type="file" id="photo2-capture" class="hidden" accept="image/*" capture="environment"></div></div>
+
+      <button type="submit" id="submitBtn" class="w-full flex justify-center py-3 px-4 rounded-md shadow-sm text-lg font-medium text-white btn-primary" disabled>
+        <span id="submitBtn-text">Scan & Save</span>
+      </button>
+    </form>
+  </div>
+
+  <footer class="text-center text-sm text-gray-500 py-4 mt-6">
+    Powered by <a href="https://www.botivate.in/" target="_blank" rel="noopener noreferrer" class="font-medium text-purple-600 hover:text-purple-500">Botivate</a>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // ⚠️ IMPORTANT: REPLACE THIS WITH YOUR NEW DEPLOYMENT URL
+      const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzL1fGOKHNVKi9PIBLVUSnPl60Lqz6QWhpbizIB4ZRGG0tCsZ7vytLh331mL_gUhjaI/exec';
+
+      const form = document.getElementById('cardForm');
+      const submitBtn = document.getElementById('submitBtn');
+      const photo1Input = document.getElementById('photo1');
+      const photo1CaptureInput = document.getElementById('photo1-capture');
+      const photo2Input = document.getElementById('photo2');
+      const photo2CaptureInput = document.getElementById('photo2-capture');
+      const preview1 = document.getElementById('preview-photo1'), preview2 = document.getElementById('preview-photo2');
+      const placeholder1 = document.getElementById('placeholder-photo1'), placeholder2 = document.getElementById('placeholder-photo2');
+      const notification = document.getElementById('notification');
+
+      let worker;
+      try {
+        worker = new Worker('worker.js');
+      } catch (e) {
+        console.error("Failed to create a web worker.", e);
+      }
+
+      function showNotification(message, isSuccess = true) {
+        notification.textContent = message;
+        notification.className = isSuccess ? 'success' : 'error';
+        notification.classList.add('show');
+        setTimeout(() => { notification.classList.remove('show'); }, 3000);
+      }
+      
+      function showPreview(file, preview, placeholder) { if (!file || !preview || !placeholder) return; const reader = new FileReader(); reader.onload = e => { preview.src = e.target.result; preview.classList.remove('hidden'); placeholder.classList.add('hidden'); }; reader.readAsDataURL(file); }
+      function updateSubmitState() { const file1 = photo1Input.files[0] || photo1CaptureInput.files[0]; if (submitBtn) { submitBtn.disabled = !file1; } }
+      function addSafeListener(element, event, handler) { if (element) { element.addEventListener(event, handler); } }
+      addSafeListener(photo1Input, 'change', () => { showPreview(photo1Input.files[0], preview1, placeholder1); updateSubmitState(); });
+      addSafeListener(photo1CaptureInput, 'change', () => { showPreview(photo1CaptureInput.files[0], preview1, placeholder1); updateSubmitState(); });
+      addSafeListener(photo2Input, 'change', () => { showPreview(photo2Input.files[0], preview2, placeholder2); });
+      addSafeListener(photo2CaptureInput, 'change', () => { showPreview(photo2CaptureInput.files[0], preview2, placeholder2); });
+      function toBase64(file) { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result.split(',')[1]); reader.onerror = error => reject(error); }); }
+
+      function resetForm() {
+        form.reset(); 
+        preview1.src = ''; preview1.classList.add('hidden'); placeholder1.classList.remove('hidden');
+        preview2.src = ''; preview2.classList.add('hidden'); placeholder2.classList.remove('hidden');
+        updateSubmitState();
+      }
+
+      addSafeListener(form, 'submit', async e => {
+        e.preventDefault();
+        const file1 = photo1Input.files[0] || photo1CaptureInput.files[0];
+        const file2 = photo2Input.files[0] || photo2CaptureInput.files[0];
+
+        if (!worker) {
+            showNotification("Cannot process in the background. Please refresh.", false);
+            return;
+        }
+
+        try {
+          const photo1Base64 = await toBase64(file1);
+          const photo2Base64 = file2 ? await toBase64(file2) : '';
+          worker.postMessage({ appsScriptUrl, photo1Base64, photo2Base64 });
+          showNotification("Uploading in the background...", true);
+          resetForm();
+        } catch (err) {
+            showNotification(`Error preparing upload: ${err.message}`, false);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
