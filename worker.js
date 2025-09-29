@@ -4,16 +4,22 @@ self.onmessage = async function(event) {
     try {
         console.log('[Worker] Starting submission...');
         
-        // --- THIS IS THE FIX ---
-        // By changing the Content-Type, we avoid the complex security check
-        // that your script is not set up to handle. Your script can still
-        // read the data perfectly fine this way.
+        // This is a common workaround for Google Apps Script CORS issues.
+        // It sends the data as plain text to avoid a complex "preflight" request
+        // that browsers would otherwise send.
+        const fetchOptions = {
+            method: 'POST',
+            mode: 'cors', // Explicitly set the mode
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8',
+            }
+        };
 
         // Step 1: Extract Data
+        console.log('[Worker] Sending image for extraction...');
         const extractResponse = await fetch(appsScriptUrl, {
-            method: 'POST',
+            ...fetchOptions,
             body: JSON.stringify({ action: 'extract', photo1Base64 }),
-            headers: { 'Content-Type': 'text/plain' } // Changed from application/json
         });
 
         const extractResult = await extractResponse.json();
@@ -24,15 +30,15 @@ self.onmessage = async function(event) {
         const extractedData = extractResult.data;
 
         // Step 2: Save Data
+        console.log('[Worker] Sending extracted data to be saved...');
         const saveResponse = await fetch(appsScriptUrl, {
-            method: 'POST',
+            ...fetchOptions,
             body: JSON.stringify({
                 action: 'save',
                 extractedData: extractedData,
                 photo1Base64: photo1Base64,
                 photo2Base64: photo2Base64
             }),
-            headers: { 'Content-Type': 'text/plain' } // Changed from application/json
         });
 
         const saveResult = await saveResponse.json();
@@ -42,6 +48,7 @@ self.onmessage = async function(event) {
         console.log('[Worker] Submission process completed successfully.');
 
     } catch (err) {
+        // This log will show up in the browser's developer console if something goes wrong.
         console.error('[Worker] An error occurred during the background submission:', err);
     }
 };
