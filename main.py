@@ -88,8 +88,6 @@ async def perform_ocr(request_data: OCRRequest):
                         },
                         {
                             "type": "image_url",
-                            # --- THIS IS THE FIX ---
-                            # The URL must be inside an object with a "url" key.
                             "image_url": {
                                 "url": f"data:image/jpeg;base64,{base64_image}"
                             }
@@ -106,7 +104,14 @@ async def perform_ocr(request_data: OCRRequest):
         if "```json" in json_response_str:
             json_response_str = json_response_str.split("```json")[1].split("```")[0].strip()
 
+        # Parse the JSON response
         parsed_data = json.loads(json_response_str)
+
+        # --- FIX: Prepend apostrophe to phone numbers starting with '+' ---
+        phone_number = parsed_data.get("phone", "")
+        if phone_number and phone_number.startswith('+'):
+            parsed_data["phone"] = "'" + phone_number
+        # --- END OF FIX ---
 
         return OCRResponse(**parsed_data)
 
