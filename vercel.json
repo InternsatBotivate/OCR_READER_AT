@@ -3,13 +3,20 @@
   "builds": [
     {
       "src": "main.py",
-      "use": "@vercel/python",
-      "config": { "maxLambdaSize": "15mb" }
+      "use": "@vercel/python"
     }
   ],
   "routes": [
     {
-      "src": "/(.*)",
+      "src": "/worker.js",
+      "dest": "/worker.js"
+    },
+    {
+      "src": "/",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/ocr",
       "dest": "main.py"
     }
   ]
